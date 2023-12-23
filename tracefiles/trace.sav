@@ -1,0 +1,80 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Tue Dec 12 00:05:29 2023
+[*]
+[dumpfile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.vcd"
+[dumpfile_mtime] "Tue Dec 12 00:00:32 2023"
+[dumpfile_size] 8383490
+[savefile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.sav"
+[timestart] 248
+[size] 1626 1099
+[pos] 827 119
+*-4.000000 298 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] TOP.
+[treeopen] TOP.top.
+[treeopen] TOP.top.wiv_core.
+[treeopen] TOP.top.wiv_core.cpu_id.
+[treeopen] TOP.top.wiv_core.cpu_id.regs.
+[treeopen] TOP.top.wiv_core.tap_ctrl.
+[sst_width] 214
+[signals_width] 322
+[sst_expanded] 1
+[sst_vpaned_height] 328
+@800200
+-Control
+@28
++{Core Clock} TOP.top.core_clk
++{Reset} TOP.top.i_reset
+@22
++{Debug} TOP.top.core_debug[23:0]
+@1000200
+-Control
+@800200
+-Bus
+@22
++{Address} TOP.top.wb_adr[63:0]
++{Input Data} TOP.top.wb_idat[63:0]
++{Output Data} TOP.top.wb_odat[63:0]
++{Block Select} TOP.top.wb_sel[7:0]
+@28
++{Cycle} TOP.top.wb_cyc
++{Strobe} TOP.top.wb_stb
++{Write Enabled} TOP.top.wb_we
++{Acknowledge} TOP.top.wb_ack
++{Stall} TOP.top.wb_stall
+@1000200
+-Bus
+@800200
+-Pipeline Registers
+@22
++{IF_ID} TOP.top.wiv_core.IF_ID[96:0]
++{MEM_WB} TOP.top.wiv_core.MEM_WB[134:0]
+@1000200
+-Pipeline Registers
+@800200
+-Registers
+@22
++{PC} TOP.top.wiv_core.cpu_if.PC[63:0]
++{RA} TOP.top.wiv_core.cpu_id.regs.Regs[1][63:0]
++{SP} TOP.top.wiv_core.cpu_id.regs.Regs[2][63:0]
++{GP} TOP.top.wiv_core.cpu_id.regs.Regs[3][63:0]
++{TP} TOP.top.wiv_core.cpu_id.regs.Regs[4][63:0]
++{T0} TOP.top.wiv_core.cpu_id.regs.Regs[5][63:0]
++{T1} TOP.top.wiv_core.cpu_id.regs.Regs[6][63:0]
++{T2} TOP.top.wiv_core.cpu_id.regs.Regs[7][63:0]
+TOP.top.wiv_core.cpu_id.regs.Regs[10][63:0]
+TOP.top.wiv_core.cpu_id.regs.Regs[11][63:0]
+TOP.top.wiv_core.cpu_id.regs.Regs[12][63:0]
+TOP.top.wiv_core.cpu_id.regs.Regs[13][63:0]
+@1000200
+-Registers
+@22
+TOP.top.wiv_core.tap_ctrl.tap_state[3:0]
+@28
+TOP.top.wiv_core.tap_ctrl.i_tck
+TOP.top.wiv_core.tap_ctrl.i_tms
+TOP.top.wiv_core.tap_ctrl.i_tdi
+@23
+TOP.top.wiv_core.tap_ctrl.IR_Reg.tapShiftReg[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

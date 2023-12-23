@@ -1,0 +1,7 @@
+WivCPU.*/
+WivCPU.xpr
+tracefiles/trace.vcd
+*.hex
+.vscode/
+build/
+*.xdc

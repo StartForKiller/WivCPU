@@ -143,57 +143,62 @@ always @(i_ld_csr) begin
 end
 
 always @(negedge i_clk) begin
-    if(i_st) begin //Update outputs on store request
-        case(i_st_csr)
-            12'h300: begin
-                mstatus_mie <= i_data[3:3];
-                mstatus_mpie <= i_data[7:7];
-            end
-            12'h304: mtie       <= i_data[7:7];
-            12'h305: mtvec      <= i_data;
-            12'h340: mscratch   <= i_data;
-            12'h341: mepc       <= {i_data[63:1], 1'h0};
-            12'h342: mcause     <= i_data;
-            12'h343: mtval      <= i_data;
-            12'h7B0: begin
-                if(i_halted) dcsr_step <= i_data[2:2];
-            end
-            12'h7B1: begin
-                if(i_halted) dpc_value <= i_data;
-            end
-            default: begin
-
-            end
-        endcase
-    end
-
-    if(!halted_latch && i_halted) begin
-        dcsr_cause <= 3'h3;
-        dpc_value <= i_debug_PC;
-    end
-    halted_latch <= i_halted;
-
-    if(i_mepc_we) begin
-        mepc <= i_mepc_data;
-    end
-    if(i_mcause_we) begin
-        mcause <= i_mcause_data;
-    end
-
-    if(i_mtimecmp_we)
-        mtimecmp <= i_mtimecmp;
-
-    if(i_mtime_we) begin
-        mtime <= i_mtime;
-    end else begin
-        mtime <= mtime + 1;
-    end
-
-    if(i_mie_clear) begin
+    if(i_reset) begin
         mstatus_mie <= 1'b0;
-        mstatus_mpie <= mstatus_mie;
-    end else if(i_mie_restore) begin
-        mstatus_mie <= mstatus_mpie;
+        //TODO: Add more regs here
+    end else begin
+        if(i_st) begin //Update outputs on store request
+            case(i_st_csr)
+                12'h300: begin
+                    mstatus_mie <= i_data[3:3];
+                    mstatus_mpie <= i_data[7:7];
+                end
+                12'h304: mtie       <= i_data[7:7];
+                12'h305: mtvec      <= i_data;
+                12'h340: mscratch   <= i_data;
+                12'h341: mepc       <= {i_data[63:1], 1'h0};
+                12'h342: mcause     <= i_data;
+                12'h343: mtval      <= i_data;
+                12'h7B0: begin
+                    if(i_halted) dcsr_step <= i_data[2:2];
+                end
+                12'h7B1: begin
+                    if(i_halted) dpc_value <= i_data;
+                end
+                default: begin
+
+                end
+            endcase
+        end
+
+        if(!halted_latch && i_halted) begin
+            dcsr_cause <= 3'h3;
+            dpc_value <= i_debug_PC;
+        end
+        halted_latch <= i_halted;
+
+        if(i_mepc_we) begin
+            mepc <= i_mepc_data;
+        end
+        if(i_mcause_we) begin
+            mcause <= i_mcause_data;
+        end
+
+        if(i_mtimecmp_we)
+            mtimecmp <= i_mtimecmp;
+
+        if(i_mtime_we) begin
+            mtime <= i_mtime;
+        end else begin
+            mtime <= mtime + 1;
+        end
+
+        if(i_mie_clear) begin
+            mstatus_mie <= 1'b0;
+            mstatus_mpie <= mstatus_mie;
+        end else if(i_mie_restore) begin
+            mstatus_mie <= mstatus_mpie;
+        end
     end
 end
 

@@ -13,9 +13,9 @@ VPATH := $(SRC_DIRS)
 all: boot.bin boot.list boot.hex
 
 $(OBJ_DIR)/%.o: %.c
-	@riscv64-unknown-elf-gcc -O2 -march=rv64ifd -Wall -Wextra -ffreestanding -mcmodel=medany $< -c  -o $@
+	@riscv64-unknown-elf-gcc -O2 -march=rv64i -mabi=lp64 -Wall -Wextra -ffreestanding -mcmodel=medany -Iinclude/ $< -c  -o $@
 $(OBJ_DIR)/%.o: %.s
-	@riscv64-unknown-elf-as -march=rv64ifd $< -c -o $@
+	@riscv64-unknown-elf-as -march=rv64i -mabi=lp64 $< -c -o $@
 boot.elf: $(OBJ)
 	@echo "[Bulding]"
 	@riscv64-unknown-elf-ld -Tlink.ld $^ -o build/$@

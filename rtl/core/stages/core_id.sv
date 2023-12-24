@@ -365,7 +365,25 @@ always @(posedge i_clk) begin
                     ID_EX.trap <= 1'b1;
                     mepc_data <= i_IF_ID.PC;
                     mepc_we <= 1'b1;
-                    mcause_data <= {1'b1, mip[62:0]};
+                    casez((mie & mip))
+                        64'b0000_0000_0000_0001: mcause_data <= {1'b1, 63'h0};
+                        64'b0000_0000_0000_001?: mcause_data <= {1'b1, 63'h1};
+                        64'b0000_0000_0000_01??: mcause_data <= {1'b1, 63'h2};
+                        64'b0000_0000_0000_1???: mcause_data <= {1'b1, 63'h3};
+                        64'b0000_0000_0001_????: mcause_data <= {1'b1, 63'h4};
+                        64'b0000_0000_001?_????: mcause_data <= {1'b1, 63'h5};
+                        64'b0000_0000_01??_????: mcause_data <= {1'b1, 63'h6};
+                        64'b0000_0000_1???_????: mcause_data <= {1'b1, 63'h7};
+                        64'b0000_0001_????_????: mcause_data <= {1'b1, 63'h8};
+                        64'b0000_001?_????_????: mcause_data <= {1'b1, 63'h9};
+                        64'b0000_01??_????_????: mcause_data <= {1'b1, 63'hA};
+                        64'b0000_1???_????_????: mcause_data <= {1'b1, 63'hB};
+                        64'b0001_????_????_????: mcause_data <= {1'b1, 63'hC};
+                        64'b001?_????_????_????: mcause_data <= {1'b1, 63'hD};
+                        64'b01??_????_????_????: mcause_data <= {1'b1, 63'hE};
+                        64'b1???_????_????_????: mcause_data <= {1'b1, 63'hF};
+                        default: mcause_data <= {1'b1, 63'h0};
+                    endcase
                     mcause_we <= 1'b1;
                     mie_clear <= 1'b1;
                 end

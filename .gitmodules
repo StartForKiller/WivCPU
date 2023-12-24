@@ -1,0 +1,3 @@
+[submodule "samples/BadgerOS"]
+	path = samples/BadgerOS
+	url = git@github.com:StartForKiller/BadgerOS.git

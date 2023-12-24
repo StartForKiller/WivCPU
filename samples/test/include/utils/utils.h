@@ -1,13 +1,15 @@
 #ifndef _UTILS_H
 #define _UTILS_H
 
-#include "./types.h"
+#include <types.h>
 
 #define PORT_UART          0x100000000
 #define PORT_SPI_CFG       0x100001000
 #define PORT_SPI_STATUS    0x100001008
 #define PORT_SPI_DATA      0x100001010
 #define PORT_SPI_CHIP      0x100001018
+#define PORT_MTIME         0x100002000
+#define PORT_MTIMECMP      0x100002008
 
 void uart_send(uint8_t data);
 void print(char *string);
@@ -19,37 +21,12 @@ uint8_t spi_send_byte(uint8_t a);
 void *memcpy(void *dest, void *src, size_t len);
 int memcmp(void *dest, void *src, size_t len);
 
-typedef struct {
-    uint64_t ra;
-    uint64_t gp;
-    uint64_t tp;
-    uint64_t t1;
-    uint64_t t2;
-    uint64_t s0;
-    uint64_t s1;
-    uint64_t a0;
-    uint64_t a1;
-    uint64_t a2;
-    uint64_t a3;
-    uint64_t a4;
-    uint64_t a5;
-    uint64_t a6;
-    uint64_t a7;
-    uint64_t s2;
-    uint64_t s3;
-    uint64_t s4;
-    uint64_t s5;
-    uint64_t s6;
-    uint64_t s7;
-    uint64_t s8;
-    uint64_t s9;
-    uint64_t s10;
-    uint64_t s11;
-    uint64_t t3;
-    uint64_t t4;
-    uint64_t t5;
-    uint64_t t6;
-} trap_context_t;
+#define CSR_MSTATUS     0x300
+#define CSR_MIE         0x304
+#define CSR_MCAUSE      0x342
+
+#define MTIME ((volatile uint64_t *)PORT_MTIME)
+#define MTIMECMP ((volatile uint64_t *)PORT_MTIMECMP)
 
 #define CSRR_READ(v, csr)                           \
 /* CSRR_READ(v, csr):

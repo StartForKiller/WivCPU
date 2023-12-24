@@ -45,23 +45,23 @@ module top(
     input        i_clk_manual
 );
 
-wire clk_100khz;
+wire clk_400khz;
 `ifdef VERILATOR
-    assign clk_100khz = i_clk;
+    assign clk_400khz = i_clk;
 `elsif XILINX_SIMULATOR
-    assign clk_100khz = i_clk;
+    assign clk_400khz = i_clk;
 `else
-    clk_div #(.CLK_DIV(1000))
+    clk_div #(.CLK_DIV(250))
     clk_100k(
         .i_clk(i_clk),
-        .o_clk(clk_100khz)
+        .o_clk(clk_400khz)
     );
 `endif
 
 wire clk_50hz;
-clk_div #(.CLK_DIV(2000))
+clk_div #(.CLK_DIV(8000))
 clk_50(
-    .i_clk(clk_100khz),
+    .i_clk(clk_400khz),
     .o_clk(clk_50hz)
 );
 
@@ -75,7 +75,7 @@ always @(posedge clk_50hz) begin
     if(clk_manual_debounced == 1'b0 && ~i_clk_manual == 1'b1) clk_manual <= ~clk_manual;
 end
 
-wire core_clk = /*i_clk_manual_switch ? */clk_100khz/* : clk_manual*/;
+wire core_clk = /*i_clk_manual_switch ? */clk_400khz/* : clk_manual*/;
 
 wire [63:0] wb_adr;
 wire [63:0] wb_idat;
@@ -251,7 +251,7 @@ spi_dev(
 );
 
 seg7 seg_7(
-    .i_clk(clk_100khz),
+    .i_clk(clk_400khz),
     .i_data(core_debug[23:8]),
     .o_seg(o_seg),
     .o_sel(o_seg_sel)

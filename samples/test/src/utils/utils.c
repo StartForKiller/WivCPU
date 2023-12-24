@@ -1,5 +1,5 @@
-#include "types.h"
-#include "utils.h"
+#include <types.h>
+#include <utils/utils.h>
 
 void uart_send(uint8_t data) {
     while(!(*((volatile uint8_t *)PORT_UART) & 0x1));

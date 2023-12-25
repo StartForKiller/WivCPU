@@ -26,7 +26,7 @@ void trap_handler(isr_context_t *regs) {
     while(1);
 }
 
-volatile uint64_t tick_count = SPINLOCK_UNLOCKED;
+volatile uint64_t tick_count = 0;
 void isr_handler(isr_context_t *regs) {
     *MTIMECMP = *MTIME + (SYSCLOCK_FREQ/10UL); //Increment 100 milliseconds
 

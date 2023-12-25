@@ -44,6 +44,7 @@ typedef struct packed {
     bit        invalidate_icache;
     bit        invalidate_dcache;
     bit        csr_st;
+    bit        amo;
     bit        trap;
 } ID_EX_t;
 
@@ -51,6 +52,7 @@ typedef struct packed {
     bit        valid;
     bit [63:0] PC;
     bit [2:0]  funct3;
+    bit [4:0]  funct5;
     bit [63:0] data;
     bit [63:0] addr;
     bit [4:0]  rd;
@@ -60,6 +62,7 @@ typedef struct packed {
     bit        ld;
     bit        st;
     bit        csr_st;
+    bit        amo;
 } EX_MEM_t;
 
 typedef struct packed {
@@ -184,5 +187,19 @@ typedef enum bit [11:0] {
     EBREAK     = 12'h001,
     MRET       = 12'h302
 } funct12_system_type_t;
+
+typedef enum bit [4:0] {
+    AMOADD     = 5'h00,
+    AMOSWAP    = 5'h01,
+    LR         = 5'h02,
+    SC         = 5'h03,
+    AMOXOR     = 5'h04,
+    AMOOR      = 5'h08,
+    AMOAND     = 5'h0C,
+    AMOMIN     = 5'h10,
+    AMOMAX     = 5'h14,
+    AMOMINU    = 5'h18,
+    AMOMAXU    = 5'h1C
+} funct5_amo_type_t;
 
 endpackage: WivDefines

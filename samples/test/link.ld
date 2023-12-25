@@ -9,6 +9,8 @@ MEMORY
 
 SECTIONS
 {
+    _end_free_region = 0x20000;
+
     .text 0x00004000 : {
         KEEP(*(.text.boot))
         *(.text*)
@@ -46,6 +48,9 @@ SECTIONS
         . += 4K;
         _trap_stack_start = .;
     } > ram AT > ram
+
+    . = ALIGN(8);
+    _free_region = .;
 
     /DISCARD/ : { *(.comment .note .eh_frame) }
 }

@@ -15,7 +15,7 @@ all: prog.bin prog.list prog.hex
 $(OBJ_DIR)/%.o: %.c
 	@riscv64-unknown-elf-gcc -O2 -march=rv64ifd -Wall -Wextra -ffreestanding -mcmodel=medany $< -c  -o $@
 $(OBJ_DIR)/%.o: %.s
-	@riscv64-unknown-elf-as -march=rv64ifdc $< -c -o $@
+	@riscv64-unknown-elf-as -march=rv64iafdc $< -c -o $@
 prog.elf: $(OBJ)
 	@echo "[Bulding]"
 	@riscv64-unknown-elf-ld -Tlink.ld $^ -o build/$@

@@ -69,6 +69,7 @@ wire [2:0] funct3 = instruction[14:12];
 wire [4:0] rs1 = instruction[19:15];
 wire [4:0] rs2 = instruction[24:20];
 wire [6:0] funct7 = instruction[31:25];
+wire [4:0] funct5 = funct7[6:2];
 wire [63:0] imm_i = {{53{instruction[31:31]}}, instruction[30:20]};
 wire [63:0] imm_s = {{53{instruction[31:31]}}, instruction[30:25], instruction[11:7]};
 wire [63:0] imm_b = {{52{instruction[31:31]}}, instruction[7:7], instruction[30:25], instruction[11:8], 1'b0};
@@ -133,6 +134,7 @@ wire load_misaligned = ((funct3 == LH_SH || funct3 == LHU) && (dat_a[0:0] ^ imm_
 wire store_misaligned = (funct3 == LH_SH && (dat_a[0:0] ^ imm_s[0:0])) ||
                         (funct3 == LW_SW && (2'(dat_a[1:0] + imm_s[1:0]) != 2'h0)) ||
                         (funct3 == LD_SD && (3'(dat_a[2:0] + imm_s[2:0]) != 3'h0));
+wire amo_misaligned = (funct3 == 3'h2 && dat_a[1:0] != 2'h0) || (funct3 == 3'h3 && dat_a[2:0] != 3'h0);
 
 regfile regs(
     .i_clk(i_clk),
@@ -211,6 +213,7 @@ initial begin
     ID_EX.invalidate_dcache = 1'b0;
     ID_EX.csr = 12'h0;
     ID_EX.csr_st = 1'b0;
+    ID_EX.amo = 1'b0;
     ID_EX.trap = 1'b0;
 
     mepc_data = 64'h0;
@@ -247,6 +250,7 @@ wire hazards = (same_rs1 &&
                      opcode == LOAD      ||
                      opcode == STORE     ||
                     (opcode == SYSTEM && funct3 != 3'h0 && funct3 != 3'h4) ||
+                     opcode == AMO       ||
                     (is_compressed &&
                     (
                         (cop == C0 && funct3 != 0) ||
@@ -268,7 +272,8 @@ wire hazards = (same_rs1 &&
                     (opcode == OP        ||
                      opcode == OP_32     ||
                      opcode == BRANCH    ||
-                     opcode == STORE ||
+                     opcode == STORE     ||
+                     opcode == AMO       ||
                      (is_compressed &&
                      (
                         (cop == C2 &&
@@ -315,6 +320,7 @@ always @(posedge i_clk) begin
         ID_EX.invalidate_dcache <= 1'b0;
         ID_EX.csr <= 12'h0;
         ID_EX.csr_st <= 1'b0;
+        ID_EX.amo <= 1'b0;
         ID_EX.trap <= 1'b0;
 
         mepc_data <= 64'h0;
@@ -342,6 +348,7 @@ always @(posedge i_clk) begin
             ID_EX.jmp <= 1'b0;
             ID_EX.csr <= 12'h0;
             ID_EX.csr_st <= 1'b0;
+            ID_EX.amo <= 1'b0;
 
             if(ID_EX.trap)
                 ID_EX.trap <= (ID_EX.csr_st || i_EX_MEM.csr_st) && (ID_EX.csr == 12'h305 || i_EX_MEM.csr == 12'h305);
@@ -861,8 +868,65 @@ always @(posedge i_clk) begin
                                 end
                             endcase
                         end
+                        AMO: begin
+                            case(funct5)
+                                LR: begin
+                                    if(amo_misaligned) begin
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h4;
+                                        mcause_we <= 1'b1;
+                                    end else begin
+                                        ID_EX.dat_b <= dat_a;
+                                        ID_EX.rd <= rd;
+                                        ID_EX.we <= 1'b1;
+                                        ID_EX.ld <= 1'b1;
+                                        ID_EX.amo <= 1'b1;
+                                    end
+                                end
+                                SC: begin
+                                    if(amo_misaligned) begin
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h4;
+                                        mcause_we <= 1'b1;
+                                    end else begin
+                                        ID_EX.dat_a <= dat_b;
+                                        ID_EX.dat_b <= dat_a;
+                                        ID_EX.rd <= rd;
+                                        ID_EX.we <= 1'b1;
+                                        ID_EX.st <= 1'b1;
+                                        ID_EX.amo <= 1'b1;
+                                    end
+                                end
+                                AMOSWAP, AMOADD, AMOAND, AMOOR, AMOXOR,
+                                AMOMAX, AMOMIN, AMOMAXU, AMOMINU:  begin
+                                    if(amo_misaligned) begin
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h4;
+                                        mcause_we <= 1'b1;
+                                    end else begin
+                                        ID_EX.dat_a <= dat_b;
+                                        ID_EX.dat_b <= dat_a;
+                                        ID_EX.rd <= rd;
+                                        ID_EX.we <= 1'b1;
+                                        ID_EX.ld <= 1'b1;
+                                        ID_EX.amo <= 1'b1;
+                                    end
+                                end
+                                default: begin
+                                    ID_EX.valid <= 1'b0;
+                                    ID_EX.trap <= 1'b1;
+                                    mepc_data <= i_IF_ID.PC;
+                                    mepc_we <= 1'b1;
+                                    mcause_data <= 64'h2;
+                                    mcause_we <= 1'b1;
+                                end
+                            endcase
+                        end
                         default: begin
-                            ID_EX.valid <= 1'b0; //TODO: Illegal OPCODE
+                            ID_EX.valid <= 1'b0;
                             ID_EX.trap <= 1'b1;
                             mepc_data <= i_IF_ID.PC;
                             mepc_we <= 1'b1;

@@ -43,6 +43,8 @@ module dcache(
     input [7:0]       i_dcache_sel,
     input             i_dcache_st,
     input             i_dcache_ld,
+    input             i_dcache_atomic,
+    output            o_dcache_reserved,
     input             i_dcache_invalidate,
     output            o_dcache_data_ready,
     output            o_dcache_ready,
@@ -112,8 +114,23 @@ assign o_dcache_odata = uncached_hit ? dcache_odata :
                                                                                                      8'($signed(i_dcache_sel[3:3])), 8'($signed(i_dcache_sel[2:2])), 8'($signed(i_dcache_sel[1:1])), 8'($signed(i_dcache_sel[0:0])) })
                         );
 
+reg [63:0] reserved_addresses [0:0];
+reg        reserved_counter;
+reg [7:0]  reserved_size      [0:0];
+reg        reserved_valid     [0:0];
+
+function bit check_reserved(input int index);
+    return reserved_addresses[index] == i_dcache_addr && reserved_size[index] == i_dcache_sel && reserved_valid[index];
+endfunction
+
+assign o_dcache_reserved = check_reserved(0);
+
 initial begin
     o_wb_lock = 1'b0;
+
+    reserved_counter = 1'b0;
+    reserved_valid[0] = 1'b0;
+    //reserved_valid[1] = 1'b0;
 end
 
 always @(posedge i_clk) begin
@@ -131,6 +148,8 @@ always @(posedge i_clk) begin
         invalidate_counter <= 6'h0;
         invalidating <= 1'b0;
         o_wb_lock <= 1'b0;
+
+        reserved_counter <= 1'b0;
     end else begin
         case(state)
             3'h0: begin
@@ -160,6 +179,11 @@ always @(posedge i_clk) begin
                         state <= 3'h4;
                     end
                 end else begin
+                    if(i_dcache_ld && i_dcache_atomic) begin
+                        reserved_addresses[reserved_counter] <= i_dcache_addr;
+                        reserved_size[reserved_counter] <= i_dcache_sel;
+                        reserved_valid[reserved_counter] <= 1'b1;
+                    end
                     if(i_dcache_ld || (!i_dcache_st && tag_hit)) begin
                         if(!tag_hit && !i_wb_rty) begin
                             temp_sel <= i_dcache_sel;
@@ -196,7 +220,7 @@ always @(posedge i_clk) begin
                             end
                             store_after_load <= 1'b0;
                         end
-                    end else if(i_dcache_st) begin
+                    end else if(i_dcache_st && !(i_dcache_atomic && !o_dcache_reserved)) begin
                         if(tag_hit) begin
                             cache[i_dcache_addr[11:6]] <= (cache[i_dcache_addr[11:6]] & 512'(~(512'({ 8'($signed(i_dcache_sel[7:7])), 8'($signed(i_dcache_sel[6:6])), 8'($signed(i_dcache_sel[5:5])), 8'($signed(i_dcache_sel[4:4])),
                                                                                                       8'($signed(i_dcache_sel[3:3])), 8'($signed(i_dcache_sel[2:2])), 8'($signed(i_dcache_sel[1:1])), 8'($signed(i_dcache_sel[0:0])) }) << {i_dcache_addr[5:0], 3'h0}))) |

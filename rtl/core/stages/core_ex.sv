@@ -45,6 +45,7 @@ initial begin
     EX_MEM.valid = 0;
     EX_MEM.PC = 64'h0;
     EX_MEM.funct3 = 3'h0;
+    EX_MEM.funct5 = 5'h0;
     EX_MEM.data = 64'h0;
     EX_MEM.addr = 64'h0;
     EX_MEM.rd = 5'h0;
@@ -54,6 +55,7 @@ initial begin
     EX_MEM.csr = 12'h0;
     EX_MEM.csr_data = 64'h0;
     EX_MEM.csr_st = 1'b0;
+    EX_MEM.amo = 1'b0;
 end
 
 assign o_dependency = 1'b0;
@@ -63,6 +65,7 @@ always @(posedge i_clk) begin
         EX_MEM.valid <= 1'b0;
         EX_MEM.PC <= 64'h0;
         EX_MEM.funct3 <= 3'h0;
+        EX_MEM.funct5 <= 5'h0;
         EX_MEM.data <= 64'h0;
         EX_MEM.addr <= 64'h0;
         EX_MEM.rd <= 5'h0;
@@ -72,11 +75,13 @@ always @(posedge i_clk) begin
         EX_MEM.csr <= 12'h0;
         EX_MEM.csr_data <= 64'h0;
         EX_MEM.csr_st <= 1'b0;
+        EX_MEM.amo <= 1'b0;
     end
     else if(i_flush) begin
         EX_MEM.valid <= 1'b0;
         EX_MEM.PC <= 64'h0;
         EX_MEM.funct3 <= 3'h0;
+        EX_MEM.funct5 <= 5'h0;
         EX_MEM.data <= 64'h0;
         EX_MEM.addr <= 64'h0;
         EX_MEM.rd <= 5'h0;
@@ -86,6 +91,7 @@ always @(posedge i_clk) begin
         EX_MEM.csr <= 12'h0;
         EX_MEM.csr_data <= 64'h0;
         EX_MEM.csr_st <= 1'b0;
+        EX_MEM.amo <= 1'b0;
     end
     else begin
         if(!i_stall) begin
@@ -94,6 +100,7 @@ always @(posedge i_clk) begin
             EX_MEM.rd <= 5'h0;
             EX_MEM.we <= 1'b0;
             EX_MEM.funct3 <= 3'h0;
+            EX_MEM.funct5 <= 5'h0;
             EX_MEM.data <= 64'h0;
             EX_MEM.addr <= 64'h0;
             EX_MEM.ld <= 1'b0;
@@ -101,6 +108,8 @@ always @(posedge i_clk) begin
             EX_MEM.csr <= 12'h0;
             EX_MEM.csr_data <= 64'h0;
             EX_MEM.csr_st <= 1'b0;
+            EX_MEM.amo <= 1'b0;
+
             if(i_ID_EX.valid) begin
                 if(opcode == OP_IMM || opcode == OP || opcode == OP_IMM_32 || opcode == OP_32) begin
                     case(i_ID_EX.funct3)
@@ -198,13 +207,14 @@ always @(posedge i_clk) begin
                         end
                         default: begin end
                     endcase
-                end else if(opcode != STORE && opcode != LOAD && opcode != JALR && opcode != JAL) begin
+                end else if(opcode != STORE && opcode != LOAD && opcode != JALR && opcode != JAL && opcode != AMO) begin
                     EX_MEM.data <= dat_a + dat_b;
                 end else begin
                     EX_MEM.data <= dat_a;
                 end
 
                 EX_MEM.funct3 <= i_ID_EX.funct3;
+                EX_MEM.funct5 <= i_ID_EX.funct7[6:2];
                 if(is_compressed && (EX_MEM.ld || EX_MEM.st)) begin
                     case(i_ID_EX.funct3)
                         C_SWSP,
@@ -221,6 +231,7 @@ always @(posedge i_clk) begin
                 EX_MEM.st <= i_ID_EX.st;
                 EX_MEM.csr <= i_ID_EX.csr;
                 EX_MEM.csr_st <= i_ID_EX.csr_st;
+                EX_MEM.amo <= i_ID_EX.amo;
 
                 EX_MEM.PC <= i_ID_EX.PC;
             end

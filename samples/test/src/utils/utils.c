@@ -1,33 +1,11 @@
 #include <types.h>
 #include <utils/utils.h>
+#include <platform/hardware.h>
 
-void uart_send(uint8_t data) {
-    while(!(*((volatile uint8_t *)PORT_UART) & 0x1));
-    *((volatile uint8_t *)PORT_UART) = data;
-}
-
-void print(char *string) {
-    char c;
-    while((c = *string++) != 0) {
-        uart_send((unsigned char)c);
-    }
-}
-
-void spi_configure(uint8_t freq, uint8_t mode) {
-    *((volatile uint8_t *)PORT_SPI_CFG) = (freq << 3) | (mode & 0x3);
-}
-
-void spi_select(uint8_t device) {
-    *((volatile uint8_t *)PORT_SPI_STATUS) = device;
-}
-
-uint8_t spi_send_byte(uint8_t a) {
-    *((volatile uint8_t *)PORT_SPI_DATA) = a;
-    *((volatile uint8_t *)PORT_SPI_CFG) |= 0x4;
-
-    while(*((volatile uint8_t *)PORT_SPI_STATUS) & 0x1);
-
-    return *((volatile uint8_t *)PORT_SPI_DATA);
+void *memset(void *dest, char c, size_t count) {
+    uint8_t *a = (uint8_t *)dest;
+    while(count--) *a++ = c;
+    return dest;
 }
 
 void *memcpy(void *dest, void *src, size_t len) {
@@ -51,4 +29,30 @@ int memcmp(void *dest, void *src, size_t len) {
     }
 
     return 0;
+}
+
+void print(char *string) {
+    char c;
+    while((c = *string++) != 0) {
+        uart_send((unsigned char)c);
+    }
+}
+
+void printHex8(uint8_t data) {
+    char low = data & 0xF;
+    char high = data >> 4;
+    uart_send(high <= 9 ? (high + '0') : (high + '7'));
+    uart_send(low <= 9 ? (low + '0') : (low + '7'));
+}
+
+void printHex32(uint32_t data) {
+    printHex8(data >> 24);
+    printHex8(data >> 16);
+    printHex8(data >> 8);
+    printHex8(data);
+}
+
+void printHex64(uint64_t data) {
+    printHex32(data >> 32);
+    printHex32(data);
 }

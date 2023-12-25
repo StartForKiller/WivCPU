@@ -1,5 +1,5 @@
-#ifndef _ISR_H
-#define _ISR_H
+#ifndef _KERNEL_ISR_H
+#define _KERNEL_ISR_H
 
 #include <types.h>
 
@@ -37,5 +37,11 @@ typedef struct {
     uint64_t t6;
     uint64_t mepc;
 } isr_context_t;
+
+void print_isr_context(isr_context_t *regs);
+void isr_handler(isr_context_t *regs);
+void trap_handler(isr_context_t *regs);
+
+void init_isr();
 
 #endif

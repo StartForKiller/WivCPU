@@ -1,21 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Tue Dec 12 00:05:29 2023
+[*] Mon Dec 25 18:58:29 2023
 [*]
 [dumpfile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.vcd"
-[dumpfile_mtime] "Tue Dec 12 00:00:32 2023"
-[dumpfile_size] 8383490
+[dumpfile_mtime] "Mon Dec 25 18:57:58 2023"
+[dumpfile_size] 9174563
 [savefile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.sav"
-[timestart] 248
+[timestart] 948
 [size] 1626 1099
-[pos] 827 119
-*-4.000000 298 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[pos] 290 136
+*-4.000000 1000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.wiv_core.
 [treeopen] TOP.top.wiv_core.cpu_id.
 [treeopen] TOP.top.wiv_core.cpu_id.regs.
-[treeopen] TOP.top.wiv_core.tap_ctrl.
 [sst_width] 214
 [signals_width] 322
 [sst_expanded] 1
@@ -68,13 +67,5 @@ TOP.top.wiv_core.cpu_id.regs.Regs[12][63:0]
 TOP.top.wiv_core.cpu_id.regs.Regs[13][63:0]
 @1000200
 -Registers
-@22
-TOP.top.wiv_core.tap_ctrl.tap_state[3:0]
-@28
-TOP.top.wiv_core.tap_ctrl.i_tck
-TOP.top.wiv_core.tap_ctrl.i_tms
-TOP.top.wiv_core.tap_ctrl.i_tdi
-@23
-TOP.top.wiv_core.tap_ctrl.IR_Reg.tapShiftReg[4:0]
 [pattern_trace] 1
 [pattern_trace] 0

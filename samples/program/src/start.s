@@ -11,6 +11,12 @@ _start:
     # invalid opcode
     ebreak
 
+    li a0, 0x5000
+    li a1, 0x6000
+    li a2, 3
+    lr.d t0, (a0)
+    sc.d t0, a2, (a0)
+
     call main
 _halt:
     j _halt

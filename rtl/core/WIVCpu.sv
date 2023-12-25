@@ -68,6 +68,8 @@ wire [63:0] dcache_odata;
 wire [7:0]  dcache_sel;
 wire        dcache_st;
 wire        dcache_ld;
+wire        dcache_atomic;
+wire        dcache_reserved;
 wire        dcache_data_ready;
 wire        dcache_ready;
 wire        dcache_invalidating;
@@ -205,6 +207,8 @@ core_mem cpu_mem(
     .o_dcache_sel(dcache_sel),
     .o_dcache_st(dcache_st),
     .o_dcache_ld(dcache_ld),
+    .o_dcache_atomic(dcache_atomic),
+    .i_dcache_reserved(dcache_reserved),
     .i_dcache_data_ready(dcache_data_ready),
     .i_dcache_ready(dcache_ready),
 
@@ -298,6 +302,8 @@ dcache wiv_dcache(
     .i_dcache_sel(dcache_sel),
     .i_dcache_st(dcache_st),
     .i_dcache_ld(dcache_ld),
+    .i_dcache_atomic(dcache_atomic),
+    .o_dcache_reserved(dcache_reserved),
     .i_dcache_invalidate(ID_EX.invalidate_dcache),
     .o_dcache_data_ready(dcache_data_ready),
     .o_dcache_ready(dcache_ready),

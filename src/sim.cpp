@@ -181,16 +181,16 @@ int main(int argc, char** argv) {
     tb->reset();
     tb->resetJTag();
 
-    tb->sendJTagCommand(0x04, 0x12345678, 0x2, true);
-    printDMIResponse(tb->readJTagCommand());
+    //tb->sendJTagCommand(0x04, 0x12345678, 0x2, true);
+    //printDMIResponse(tb->readJTagCommand());
 
-    tb->sendJTagCommand(0x04, 0, 0x1, true);
-    printDMIResponse(tb->readJTagCommand());
+    //tb->sendJTagCommand(0x04, 0, 0x1, true);
+    //printDMIResponse(tb->readJTagCommand());
 
-    tb->sendJTagCommand(0x16, 0, 0x1, true);
-    printDMIResponse(tb->readJTagCommand());
+    //tb->sendJTagCommand(0x16, 0, 0x1, true);
+    //printDMIResponse(tb->readJTagCommand());
 
-    printf("Current Status: 0x%08X\n", tb->readJTagStatus());
+    //printf("Current Status: 0x%08X\n", tb->readJTagStatus());
 
     while(!tb->done()) {
         tb->tick();

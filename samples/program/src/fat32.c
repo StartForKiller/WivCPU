@@ -149,8 +149,8 @@ int fat32_init(read_function_t readFunction) {
 
             __asm__ volatile("fence.i");
             //Maybe pass some arguments here
-            void (*program)(void) = (void (*)())0x4000;
-            program();
+            void (*program)(uint32_t) = (void (*)())0x4000;
+            program(dir.file_size);
 
             return 0;
         }

@@ -81,8 +81,16 @@ always @(negedge i_clk) begin
             if(i_wb_we) begin
                 //Write
                 tx_reg <= i_wb_dat[7:0];
-                if(state == 0)
-                    send <= 1'b1;
+                `ifdef VERILATOR
+                    $write("%c", i_wb_dat[7:0]);
+                    send <= 1'b0;
+                `elsif XILINX_SIMULATOR
+                    $write("%c", i_wb_dat[7:0]);
+                    send <= 1'b0;
+                `else
+                    if(state == 0)
+                        send <= 1'b1;
+                `endif
             end else begin
                 //Read
                 o_wb_data_latch <= {63'h0, state == 0 && send == 0};

@@ -2,10 +2,12 @@
 #include <kernel/isr.h>
 #include <kernel/memory.h>
 
-void main() {
+void main(uint32_t fileSize) {
     print("Second stage init!\n\r\n\r");
 
     init_memory();
+
+    print("Kernel Size: 0x"); printHex32((size_t)fileSize); print("\n\r");
 
     uint8_t *a = kmalloc(0x10);
     uint8_t *b = kmalloc(0x10);

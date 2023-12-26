@@ -202,4 +202,25 @@ typedef enum bit [4:0] {
     AMOMAXU    = 5'h1C
 } funct5_amo_type_t;
 
+typedef enum bit [1:0] {
+    PMP_MODE_OFF    = 2'h0,
+    PMP_MODE_TOR    = 2'h1,
+    PMP_MODE_NA4    = 2'h2,
+    PMP_MODE_NAPOT  = 2'h3
+} pmp_cfg_mode_t;
+
+typedef struct packed {
+    bit             lock;
+    pmp_cfg_mode_t  mode;
+    bit             exec;
+    bit             write;
+    bit             read;
+} pmp_cfg_t;
+
+typedef enum bit [1:0] {
+    PMP_REQ_EXEC    = 2'h0,
+    PMP_REQ_READ    = 2'h1,
+    PMP_REQ_WRITE   = 2'h2
+} pmp_req_type_t;
+
 endpackage: WivDefines

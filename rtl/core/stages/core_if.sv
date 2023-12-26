@@ -41,6 +41,7 @@ module core_if(
     input         i_halt,
     input         i_halted,
     input  [63:0] i_dpc,
+    input         i_pmp_icache_trap,
 
     output [63:0] o_debug_PC
 );
@@ -113,7 +114,7 @@ always @(posedge i_clk) begin
                 state <= 1'b0;
                 IF_ID.valid <= 1'b0;
             end
-            else if(i_halt) begin
+            else if(i_halt || i_pmp_icache_trap) begin
                 IF_ID.valid <= 1'b0;
             end else begin
                 if(state)

@@ -53,6 +53,13 @@ module core_id(
     output [63:0] o_dpc,
     input         i_halted,
 
+    output pmp_cfg_t      o_pmp_cfg[16],
+    output [55:0]         o_pmp_addr[16],
+    input                 i_pmp_icache_trap,
+    output [55:0]         o_pmp_dcache_addr,
+    output pmp_req_type_t o_pmp_dcache_type,
+    input                 i_pmp_dcache_trap,
+
     output [63:0]     o_mtvec,
     output [63:0]     o_mcause
 );
@@ -128,6 +135,12 @@ wire dat_equal = dat_a == dat_b;
 wire dat_less = $signed(dat_a) < $signed(dat_b);
 wire dat_less_unsigned = dat_a < dat_b;
 
+wire [63:0] load_address  = dat_a + imm_i;
+wire [63:0] store_address = dat_a + imm_s;
+assign o_pmp_dcache_addr = (opcode == LOAD) ? load_address[55:0] :
+                          ((opcode == AMO) ? dat_a[55:0] : store_address[55:0]);
+assign o_pmp_dcache_type = (opcode == LOAD || (opcode == AMO && funct5 == LR)) ? PMP_REQ_READ : PMP_REQ_WRITE;
+
 wire load_misaligned = ((funct3 == LH_SH || funct3 == LHU) && (dat_a[0:0] ^ imm_i[0:0])) ||
                        ((funct3 == LW_SW || funct3 == LWU) && (2'(dat_a[1:0] + imm_i[1:0]) != 2'h0)) ||
                        (funct3 == LD_SD && (3'(dat_a[2:0] + imm_i[2:0]) != 3'h0));
@@ -185,6 +198,9 @@ csrfile csrs(
     .i_mtimecmp(i_mtimecmp),
     .i_mtime_we(i_mtime_we),
     .i_mtimecmp_we(i_mtimecmp_we),
+
+    .o_pmp_cfg(o_pmp_cfg),
+    .o_pmp_addr(o_pmp_addr),
 
     .i_debug_PC(i_debug_PC),
     .o_dpc(o_dpc),
@@ -284,7 +300,9 @@ wire hazards = (same_rs1 &&
                         ))
                      )))) ||
                (same_csr &&
-                    (opcode == SYSTEM));
+                    (opcode == SYSTEM)) ||
+               ((ID_EX.csr_st     && ID_EX.csr >= 12'h3A0 && ID_EX.csr < 12'h3F0) || //Quick patch to be able to wait until mepc is ready with data
+               ( i_EX_MEM.csr_st  && i_EX_MEM.csr >= 12'h3A0 && i_EX_MEM.csr < 12'h3F0));
 
 wire branch_taken = (funct3[2:1] == 2'h0) ?
                         (dat_equal ^ funct3[0:0]) :
@@ -362,7 +380,15 @@ always @(posedge i_clk) begin
 
             invalidating_state <= 2'h0;
 
-            if(i_IF_ID.valid && !hazards && !ID_EX.trap && !ID_EX.jmp) begin
+            if(!i_IF_ID.valid && i_pmp_icache_trap && !ID_EX.trap && !ID_EX.jmp) begin
+                ID_EX.valid <= 1'b0;
+                ID_EX.trap <= 1'b1;
+                mepc_data <= i_IF_ID.PC;
+                mepc_we <= 1'b1;
+                mcause_data <= 64'h1; //TODO
+                mcause_we <= 1'b1;
+            end
+            else if(i_IF_ID.valid && !hazards && !ID_EX.trap && !ID_EX.jmp) begin
                 ID_EX.funct7 <= funct7;
 
                 ID_EX.opcode <= opcode;
@@ -688,7 +714,17 @@ always @(posedge i_clk) begin
                             ID_EX.jmp <= 1'b1;
                         end
                         LOAD: begin
-                            if(load_misaligned) begin
+                            if(i_pmp_dcache_trap) begin
+                                ID_EX.valid <= 1'b0;
+                                ID_EX.trap <= 1'b1;
+                                mepc_data <= i_IF_ID.PC;
+                                mepc_we <= 1'b1;
+                                mcause_data <= 64'h5; //TODO
+                                mcause_we <= 1'b1;
+                            end
+                            else if(load_misaligned) begin
+                                ID_EX.valid <= 1'b0;
+                                ID_EX.trap <= 1'b1;
                                 mepc_data <= i_IF_ID.PC;
                                 mepc_we <= 1'b1;
                                 mcause_data <= 64'h4;
@@ -701,7 +737,17 @@ always @(posedge i_clk) begin
                             end
                         end
                         STORE: begin
-                            if(store_misaligned) begin
+                            if(i_pmp_dcache_trap) begin
+                                ID_EX.valid <= 1'b0;
+                                ID_EX.trap <= 1'b1;
+                                mepc_data <= i_IF_ID.PC;
+                                mepc_we <= 1'b1;
+                                mcause_data <= 64'h7; //TODO
+                                mcause_we <= 1'b1;
+                            end
+                            else if(store_misaligned) begin
+                                ID_EX.valid <= 1'b0;
+                                ID_EX.trap <= 1'b1;
                                 mepc_data <= i_IF_ID.PC;
                                 mepc_we <= 1'b1;
                                 mcause_data <= 64'h6;
@@ -871,7 +917,17 @@ always @(posedge i_clk) begin
                         AMO: begin
                             case(funct5)
                                 LR: begin
-                                    if(amo_misaligned) begin
+                                    if(i_pmp_dcache_trap) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h7;
+                                        mcause_we <= 1'b1;
+                                    end
+                                    else if(amo_misaligned) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;
                                         mepc_we <= 1'b1;
                                         mcause_data <= 64'h4;
@@ -885,7 +941,17 @@ always @(posedge i_clk) begin
                                     end
                                 end
                                 SC: begin
-                                    if(amo_misaligned) begin
+                                    if(i_pmp_dcache_trap) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h7;
+                                        mcause_we <= 1'b1;
+                                    end
+                                    else if(amo_misaligned) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;
                                         mepc_we <= 1'b1;
                                         mcause_data <= 64'h4;
@@ -901,7 +967,17 @@ always @(posedge i_clk) begin
                                 end
                                 AMOSWAP, AMOADD, AMOAND, AMOOR, AMOXOR,
                                 AMOMAX, AMOMIN, AMOMAXU, AMOMINU:  begin
-                                    if(amo_misaligned) begin
+                                    if(i_pmp_dcache_trap) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h7;
+                                        mcause_we <= 1'b1;
+                                    end
+                                    else if(amo_misaligned) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;
                                         mepc_we <= 1'b1;
                                         mcause_data <= 64'h4;

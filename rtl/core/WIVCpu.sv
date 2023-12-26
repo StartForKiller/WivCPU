@@ -36,12 +36,12 @@ module WIVCpu(
     output        o_wb_cyc,
     input         i_wb_stall,
 
-    output [63:0] o_mtime,
-    output [63:0] o_mtimecmp,
-    input  [63:0] i_mtime,
-    input  [63:0] i_mtimecmp,
-    input         i_mtime_we,
-    input         i_mtimecmp_we,
+    output [63:0]     o_mtime,
+    output [63:0]     o_mtimecmp,
+    input  [63:0]     i_mtime,
+    input  [63:0]     i_mtimecmp,
+    input             i_mtime_we,
+    input             i_mtimecmp_we,
 
     //DMI-DM Bus
     input         i_dmi_req_valid,
@@ -97,9 +97,21 @@ wire [63:0] dm_reg_o_data;
 wire [63:0] dm_reg_i_data;
 wire [12:0] dm_reg_addr;
 
-wire [63:0] debug_PC;
-wire [63:0] mtvec;
-wire [63:0] mcause;
+wire [63:0]    debug_PC;
+wire [63:0]    mtvec;
+wire [63:0]    mcause;
+pmp_cfg_t      pmp_cfg[16];
+logic [55:0]   pmp_addr[16];
+logic [55:0]   pmp_req_addr_dcache;
+logic [55:0]   pmp_req_addr[2];
+pmp_req_type_t pmp_req_type_dcache;
+pmp_req_type_t pmp_req_type[2];
+logic          pmp_req_trap[2];
+
+assign pmp_req_addr[0] = icache_addr[55:0];
+assign pmp_req_addr[1] = pmp_req_addr_dcache;
+assign pmp_req_type[0] = PMP_REQ_EXEC;
+assign pmp_req_type[1] = pmp_req_type_dcache;
 
 wire [63:0] dpc;
 
@@ -143,6 +155,7 @@ core_if cpu_if(
     .i_halt(core_halt),
     .i_halted(core_halted),
     .i_dpc(dpc),
+    .i_pmp_icache_trap(pmp_req_trap[0]),
 
     .o_debug_PC(debug_PC)
 );
@@ -177,6 +190,13 @@ core_id cpu_id(
     .i_mtimecmp_we(i_mtimecmp_we),
     .o_dpc(dpc),
     .i_halted(core_halted),
+
+    .o_pmp_cfg(pmp_cfg),
+    .o_pmp_addr(pmp_addr),
+    .i_pmp_icache_trap(pmp_req_trap[0]),
+    .o_pmp_dcache_addr(pmp_req_addr_dcache),
+    .o_pmp_dcache_type(pmp_req_type_dcache),
+    .i_pmp_dcache_trap(pmp_req_trap[1]),
 
     .o_mtvec(mtvec),
     .o_mcause(mcause)
@@ -215,6 +235,15 @@ core_mem cpu_mem(
     .i_stall(mem_stall),
     .i_flush(mem_flush),
     .o_dependency(mem_dependency)
+);
+
+pmp pmp_logic(
+    .i_pmp_cfg(pmp_cfg),
+    .i_pmp_addr(pmp_addr),
+
+    .i_req_addr(pmp_req_addr),
+    .i_req_type(pmp_req_type),
+    .o_req_trap(pmp_req_trap)
 );
 
 // - DM Region
@@ -259,6 +288,7 @@ icache wiv_icache(
     .i_wb_rty(icache_wb_rty),
     .o_wb_lock(icache_wb_lock),
 
+    .i_enable(!pmp_req_trap[0]),
     .i_addr(icache_addr),
     .o_data(icache_data),
 

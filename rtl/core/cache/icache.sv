@@ -37,6 +37,7 @@ module icache(
     input               i_wb_rty,
     output reg          o_wb_lock,
 
+    input               i_enable,
     input [63:0]        i_addr,
     output reg [31:0]   o_data,
 
@@ -114,7 +115,7 @@ always @(posedge i_clk) begin
                     //Output the data
                     state <= 2'b00;
                 end
-                else if(!i_wb_rty && !i_wb_ack) begin
+                else if(!i_wb_rty && !i_wb_ack && i_enable) begin
                     o_wb_adr <= {i_addr[63:6], 6'h0};
                     o_wb_we <= 1'b0;
                     o_wb_cyc <= 1'b1;

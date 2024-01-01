@@ -25,6 +25,16 @@ void main(uint32_t fileSize) {
     kfree(b);
     kfree(c);
 
+    volatile uint64_t *test = (volatile uint64_t *)0x10000000;
+    for(uint64_t i = 0; i < 8; i++) {
+        *test = i;
+        test = (volatile uint64_t *)(0x10000000 + ((i + 1) << 3));
+    }
+    asm volatile ("fence.i" ::: "memory");
+    test = (volatile uint64_t *)0x10000000;
+    *test = 1;
+    if(*test == 1) print("Test\n\r");
+
     init_isr();
 
     while(1);

@@ -5,11 +5,12 @@ MEMORY
 {
     rom (xr) : ORIGIN = 0x00000000, LENGTH = 16K
     ram (xrw) : ORIGIN = 0x00004000, LENGTH = 112K
+    ddr3 (xrw) : ORIGIN = 0x10000000, LENGTH = 256M
 }
 
 SECTIONS
 {
-    _end_free_region = 0x20000;
+    _end_free_region = 0x20000000;
 
     .text 0x00004000 : {
         KEEP(*(.text.boot))
@@ -49,8 +50,7 @@ SECTIONS
         _trap_stack_start = .;
     } > ram AT > ram
 
-    . = ALIGN(8);
-    _free_region = .;
+    _free_region = 0x10000000;
 
     /DISCARD/ : { *(.comment .note .eh_frame) }
 }

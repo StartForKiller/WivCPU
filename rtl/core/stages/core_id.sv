@@ -302,7 +302,8 @@ wire hazards = (same_rs1 &&
                (same_csr &&
                     (opcode == SYSTEM)) ||
                ((ID_EX.csr_st     && ID_EX.csr >= 12'h3A0 && ID_EX.csr < 12'h3F0) || //Quick patch to be able to wait until mepc is ready with data
-               ( i_EX_MEM.csr_st  && i_EX_MEM.csr >= 12'h3A0 && i_EX_MEM.csr < 12'h3F0));
+               ( i_EX_MEM.csr_st  && i_EX_MEM.csr >= 12'h3A0 && i_EX_MEM.csr < 12'h3F0)) ||
+               (opcode == MISC_MEM && funct3 == FENCE_I && (ID_EX.st || i_EX_MEM.st));
 
 wire branch_taken = (funct3[2:1] == 2'h0) ?
                         (dat_equal ^ funct3[0:0]) :

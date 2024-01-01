@@ -1,4 +1,4 @@
-`timescale 1ns / 1ps
+`timescale 10ns / 10ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company:
 // Engineer:
@@ -37,6 +37,25 @@ module top(
     input        i_tms,
     input        i_tdi,
     output       o_tdo,
+
+    // DDR3 Physical Interface Signals
+    //Inouts
+    inout  [15:0] ddr3_dq,
+    inout  [1:0]  ddr3_dqs_n,
+    inout  [1:0]  ddr3_dqs_p,
+    // Outputs
+    output [13:0] ddr3_addr,
+    output [2:0]  ddr3_ba,
+    output ddr3_ras_n,
+    output ddr3_cas_n,
+    output ddr3_we_n,
+    output ddr3_reset_n,
+    output [0:0] ddr3_ck_p,
+    output [0:0] ddr3_ck_n,
+    output [0:0] ddr3_cke,
+    output [0:0] ddr3_cs_n,
+    output [1:0] ddr3_dm,
+    output [0:0] ddr3_odt,
 
     output [7:0] o_debug_leds,
     output [7:0] o_seg,
@@ -250,9 +269,47 @@ spi_dev(
     .o_select(spi_cs)
 );
 
+`ifndef VERILATOR
+wire [15:0] ddr3_debug;
+ddr3 #(.MAPPED_ADDRESS(64'h010000000))
+ddr3_dev(
+    .i_clk(core_clk),
+    .i_sys_clk(i_clk),
+    .i_reset(i_reset),
+
+    .i_wb_adr(wb_adr),
+    .i_wb_dat(wb_odat),
+    .o_wb_dat(wb_idat),
+    .i_wb_we(wb_we),
+    .i_wb_sel(wb_sel),
+    .i_wb_stb(wb_stb),
+    .o_wb_ack(wb_ack),
+    .o_wb_stall(wb_stall),
+    .i_wb_cyc(wb_cyc),
+
+    .ddr3_dq(ddr3_dq),
+    .ddr3_dqs_n(ddr3_dqs_n),
+    .ddr3_dqs_p(ddr3_dqs_p),
+    .ddr3_addr(ddr3_addr),
+    .ddr3_ba(ddr3_ba),
+    .ddr3_ras_n(ddr3_ras_n),
+    .ddr3_cas_n(ddr3_cas_n),
+    .ddr3_we_n(ddr3_we_n),
+    .ddr3_reset_n(ddr3_reset_n),
+    .ddr3_ck_p(ddr3_ck_p),
+    .ddr3_ck_n(ddr3_ck_n),
+    .ddr3_cke(ddr3_cke),
+    .ddr3_cs_n(ddr3_cs_n),
+    .ddr3_dm(ddr3_dm),
+    .ddr3_odt(ddr3_odt),
+
+    .o_debug(ddr3_debug)
+);
+`endif
+
 seg7 seg_7(
     .i_clk(clk_400khz),
-    .i_data(core_debug[23:8]),
+    .i_data(i_clk_manual_switch ? ddr3_debug : core_debug[23:8]),
     .o_seg(o_seg),
     .o_sel(o_seg_sel)
 );

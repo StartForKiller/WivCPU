@@ -2,8 +2,7 @@
 #include <utils/utils.h>
 
 static uint64_t *mem_bitmap;
-static uint64_t mem_start_address;
-static uint64_t mem_start_address_relative_index;
+static uint64_t mem_bitmap_length;
 static uint64_t regions_left;
 
 static int mem_read_bit(size_t index) {
@@ -24,22 +23,26 @@ static int mem_bitmap_isfree(size_t index, size_t count) {
     return 1;
 }
 
-void *mem_alloc_nonzero(size_t count) {
-    size_t index = 0;
-    size_t max_index = ((size_t)&_end_free_region - mem_start_address) >> 4;
+void *mem_alloc_advanced(size_t count, size_t alignment) {
+    size_t index = (size_t)&_free_region / PAGE_SIZE;
+    size_t max_index = mem_bitmap_length;
 
     while(index < max_index) {
         if(!mem_bitmap_isfree(index, count)) {
-            index++;
+            index += alignment;
             continue;
         }
         mem_write_bit(index, 1, count);
         if(regions_left) regions_left -= count;
 
-        return (void *)((index + mem_start_address_relative_index) << 4);
+        return (void *)(index * PAGE_SIZE);
     }
 
     return NULL;
+}
+
+void *mem_alloc_nonzero(size_t count) {
+    return mem_alloc_advanced(count, 1);
 }
 
 void *mem_alloc(size_t count) {
@@ -49,7 +52,7 @@ void *mem_alloc(size_t count) {
 }
 
 void mem_free(void *addr, size_t count) {
-    size_t index = ((size_t)addr - mem_start_address) >> 4;
+    size_t index = (size_t)addr / PAGE_SIZE;
     mem_write_bit(index, 0, count);
     regions_left += count;
 }
@@ -127,10 +130,16 @@ void *kcalloc(size_t num, size_t nsize) {
 
 #define ROUND_UP(N, S) ((((N) + (S) - 1) / (S)) * (S))
 void init_memory() {
-    uint64_t bitmapByteSize = (((size_t)&_end_free_region-(size_t)&_free_region) >> 7);
-    bitmapByteSize = ROUND_UP(bitmapByteSize, 0x10);
     mem_bitmap = (uint64_t *)&_free_region;
+    mem_bitmap_length = ((size_t)&_end_free_region + PAGE_SIZE - 1) / PAGE_SIZE;
 
-    mem_start_address = (size_t)&_free_region + bitmapByteSize;
-    mem_start_address_relative_index = mem_start_address >> 4;
+    uint64_t mem_bitmap_blength = mem_bitmap_length / 8;
+    memset(mem_bitmap, 0xFF, mem_bitmap_blength);
+
+    void *next_free_addr = (void *)((size_t)mem_bitmap + ROUND_UP(mem_bitmap_blength, PAGE_SIZE));
+    mem_free(next_free_addr, ((size_t)&_end_free_region - (size_t)next_free_addr) / PAGE_SIZE);
+
+    print("[MEM] Init done with 0x");
+    printHex64(regions_left);
+    print(" free pages\n\r");
 }

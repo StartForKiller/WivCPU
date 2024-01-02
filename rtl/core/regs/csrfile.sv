@@ -298,6 +298,8 @@ always @(negedge i_clk) begin
             end
             12'h7B0: o_data <= {32'h0, 4'h4, 19'h0, dcsr_cause, 3'h0, dcsr_step, 2'h3};
             12'h7B1: o_data <= dpc_value;
+            12'hF12: o_data <= 64'h26; //Temp value, needs to be approved
+            12'hF13: o_data <= {32'h1, 32'h0}; //High 32: Version, Low 32: Sub-version(fixes o minimal changes)
             default: begin end
         endcase
     end

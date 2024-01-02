@@ -186,7 +186,8 @@ typedef enum bit [2:0] {
 typedef enum bit [11:0] {
     ECALL      = 12'h000,
     EBREAK     = 12'h001,
-    MRET       = 12'h302
+    MRET       = 12'h302,
+    WFI        = 12'h105
 } funct12_system_type_t;
 
 typedef enum bit [4:0] {

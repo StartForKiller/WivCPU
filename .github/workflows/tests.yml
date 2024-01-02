@@ -27,7 +27,7 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         apt-get update
         apt-get -y upgrade
-        apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev verilator libudev-dev libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg8-dev libsndfile1-dev libopenal-dev gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf
+        apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev autoreconf verilator libudev-dev libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg8-dev libsndfile1-dev libopenal-dev gcc-riscv64-unknown-elf binutils-riscv64-unknown-elf
         git clone https://github.com/sifive/elf2hex.git
         cd elf2hex
         autoreconf -i

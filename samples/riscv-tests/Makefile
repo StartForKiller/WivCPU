@@ -60,6 +60,27 @@ TESTS += rv64ui/fence_i.S
 # C
 TESTS += rv64uc/rvc.S
 
+# A
+TESTS += rv64ua/amoadd_d.S
+TESTS += rv64ua/amoadd_w.S
+TESTS += rv64ua/amoand_d.S
+TESTS += rv64ua/amoand_w.S
+TESTS += rv64ua/amomax_d.S
+TESTS += rv64ua/amomax_w.S
+TESTS += rv64ua/amomaxu_d.S
+TESTS += rv64ua/amomaxu_w.S
+TESTS += rv64ua/amomin_d.S
+TESTS += rv64ua/amomin_w.S
+TESTS += rv64ua/amominu_d.S
+TESTS += rv64ua/amominu_w.S
+TESTS += rv64ua/amoor_d.S
+TESTS += rv64ua/amoor_w.S
+TESTS += rv64ua/amoswap_d.S
+TESTS += rv64ua/amoswap_w.S
+TESTS += rv64ua/amoxor_d.S
+TESTS += rv64ua/amoxor_w.S
+TESTS += rv64ua/lrsc.S
+
 # M-Mode
 TESTS += rv64mi/access.S
 TESTS += rv64mi/csr.S

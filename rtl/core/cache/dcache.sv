@@ -179,10 +179,15 @@ always @(posedge i_clk) begin
                         state <= 3'h4;
                     end
                 end else begin
-                    if(i_dcache_ld && i_dcache_atomic) begin
-                        reserved_addresses[reserved_counter] <= i_dcache_addr;
-                        reserved_size[reserved_counter] <= i_dcache_sel;
-                        reserved_valid[reserved_counter] <= 1'b1;
+                    if(i_dcache_atomic) begin
+                        if(i_dcache_ld) begin
+                            reserved_addresses[reserved_counter] <= i_dcache_addr;
+                            reserved_size[reserved_counter] <= i_dcache_sel;
+                            reserved_valid[reserved_counter] <= 1'b1;
+                        end
+                        if(i_dcache_st) begin
+                            reserved_valid[reserved_counter] <= 1'b0;
+                        end
                     end
                     if(i_dcache_ld || (!i_dcache_st && tag_hit)) begin
                         if(!tag_hit && !i_wb_rty) begin

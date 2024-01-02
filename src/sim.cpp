@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
     VTopTestBench *tb = new VTopTestBench;
     tb->opentrace("/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.vcd");
 
-    tb->setMaxTicks(10000);
+    tb->setMaxTicks(1000000);
 
     tb->reset();
     tb->resetJTag();

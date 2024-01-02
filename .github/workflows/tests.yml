@@ -48,4 +48,4 @@ jobs:
       run: |
         chmod +x ./test.sh
         ./test.sh
-        cat samples/riscv-tests/build/simple.hex
+        cat samples/riscv-tests/build/rv64ui/simple.hex

@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Tue Dec 26 03:56:17 2023
+[*] Tue Jan  2 03:44:54 2024
 [*]
 [dumpfile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.vcd"
-[dumpfile_mtime] "Tue Dec 26 03:31:16 2023"
-[dumpfile_size] 12988333
+[dumpfile_mtime] "Tue Jan  2 03:33:40 2024"
+[dumpfile_size] 708757
 [savefile] "/mnt/c/Users/jesus/Documents/Vivado/WivCPU/tracefiles/trace.sav"
-[timestart] 1147
+[timestart] 3318
 [size] 1278 1360
 [pos] 1336 31
-*-4.000000 1170 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.000000 3330 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.top.
 [treeopen] TOP.top.wiv_core.
@@ -67,5 +67,17 @@ TOP.top.wiv_core.cpu_id.regs.Regs[12][63:0]
 TOP.top.wiv_core.cpu_id.regs.Regs[13][63:0]
 @1000200
 -Registers
+@28
+TOP.top.wiv_core.cpu_mem.o_dcache_st
+@22
+TOP.top.wiv_core.cpu_mem.o_dcache_odata[63:0]
+@28
+TOP.top.wiv_core.cpu_mem.o_dcache_ld
+@22
+TOP.top.wiv_core.cpu_mem.o_dcache_addr[63:0]
+TOP.top.wiv_core.cpu_mem.i_dcache_idata[63:0]
+TOP.top.wiv_core.cpu_mem.o_dcache_sel[7:0]
+@29
+TOP.top.wiv_core.cpu_mem.state[2:0]
 [pattern_trace] 1
 [pattern_trace] 0

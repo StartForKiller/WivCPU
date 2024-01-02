@@ -69,6 +69,9 @@ assign o_ID_EX = ID_EX;
 
 wire [31:0] instruction = i_IF_ID.instruction;
 
+wire [63:0] next_PC = i_IF_ID.PC + 4;
+reg  [63:0] temp_reg;
+
 //Instruction defines
 wire [6:0] opcode = instruction[6:0];
 wire [4:0] rd = instruction[11:7];
@@ -87,6 +90,7 @@ wire [63:0] imm_j = {{44{instruction[31:31]}}, instruction[19:12], instruction[2
 wire [1:0]  cop       = instruction[1:0];
 wire is_compressed    = cop != 2'b11;
 wire [1:0]  cfunct2   = instruction[6:5];
+wire [1:0]  cfunct2_b = instruction[11:10];
 wire [2:0]  cfunct3   = instruction[15:13];
 wire [3:0]  cfunct4   = instruction[15:12];
 wire [5:0]  cfunct6   = instruction[15:10];
@@ -281,7 +285,9 @@ wire hazards = (same_rs1 &&
                         (cop == C2 &&
                         (
                             cfunct3 == C_SLLI ||
-                            cfunct3 == C_SPECIAL
+                            cfunct3 == C_SPECIAL ||
+                            cfunct3 == C_LWSP ||
+                            cfunct3 == C_LDSP
                         ))
                     )))) ||
                (same_rs2 &&
@@ -292,6 +298,11 @@ wire hazards = (same_rs1 &&
                      opcode == AMO       ||
                      (is_compressed &&
                      (
+                        (cop == C0 &&
+                        (
+                            cfunct3 == C_SW ||
+                            cfunct3 == C_SD
+                        )) ||
                         (cop == C2 &&
                         (
                             cfunct3 == C_SPECIAL ||
@@ -429,13 +440,13 @@ always @(posedge i_clk) begin
                             case(cfunct3)
                                 C_LW: begin
                                     ID_EX.dat_b <= dat_a + {57'h0, imm_cl_cs[0:0], imm_cl_cs[4:1], 2'h0};
-                                    ID_EX.rd <= crs1;
+                                    ID_EX.rd <= crs2p;
                                     ID_EX.we <= 1'b1;
                                     ID_EX.ld <= 1'b1;
                                 end
                                 C_LD: begin
                                     ID_EX.dat_b <= dat_a + {56'h0, imm_cl_cs[1:0], imm_cl_cs[4:2], 3'h0};
-                                    ID_EX.rd <= crs1;
+                                    ID_EX.rd <= crs2p;
                                     ID_EX.we <= 1'b1;
                                     ID_EX.ld <= 1'b1;
                                 end
@@ -489,6 +500,8 @@ always @(posedge i_clk) begin
                                         //TODO: C.ADDI16SP
                                         ID_EX.dat_a <= dat_a;
                                         ID_EX.dat_b <= {{55{imm_ci[5:5]}}, imm_ci[2:1], imm_ci[3:3], imm_ci[0:0], imm_ci[4:4], 4'h0};
+                                        ID_EX.rd <= 5'h2;
+                                        ID_EX.we <= 1'b1;
                                     end else if (crs1 != 0) begin
                                         ID_EX.dat_a <= {{47{imm_ci[5:5]}}, imm_ci[4:0], 12'h0};
                                         ID_EX.dat_b <= 64'h0;
@@ -541,8 +554,8 @@ always @(posedge i_clk) begin
                                     ID_EX.jmp <= dat_a != 0;
                                 end
                                 C_ALU: begin
-                                    ID_EX.funct7 <= {2'h0, instruction[12:12], instruction[6:5], cfunct2};
-                                    if(cfunct2 != 2'b11) begin
+                                    ID_EX.funct7 <= {2'h0, instruction[12:12], cfunct2, cfunct2_b};
+                                    if(cfunct2_b != 2'b11) begin
                                         ID_EX.dat_a <= dat_a;
                                         ID_EX.dat_b <= {58'h0, imm_ci};
                                         ID_EX.rd <= crs1p;
@@ -701,21 +714,46 @@ always @(posedge i_clk) begin
                             ID_EX.we <= 1'b1;
                         end
                         JAL: begin
-                            ID_EX.dat_a <= i_IF_ID.PC + 4;
-                            ID_EX.dat_b <= imm_j + i_IF_ID.PC;
+                            ID_EX.dat_a <= next_PC;
+
+                            temp_reg = imm_j + i_IF_ID.PC;
+                            if(temp_reg[63:56] != 8'h0) begin
+                                ID_EX.valid <= 1'b1;
+                                ID_EX.trap <= 1'b1;
+                                mepc_data <= i_IF_ID.PC;
+                                mepc_we <= 1'b1;
+                                mcause_data <= 64'h1; //TODO
+                                mcause_we <= 1'b1;
+                            end else begin
+                                ID_EX.dat_b <= imm_j + i_IF_ID.PC;
+                                ID_EX.jmp <= 1'b1;
+                            end
+
                             ID_EX.rd <= rd;
                             ID_EX.we <= 1'b1;
-                            ID_EX.jmp <= 1'b1;
                         end
                         JALR: begin
-                            ID_EX.dat_a <= i_IF_ID.PC + 4;
-                            ID_EX.dat_b <= imm_i + dat_a;
+                            ID_EX.dat_a <= next_PC;
+
+                            temp_reg = imm_i + dat_a;
+                            if(temp_reg[63:56] != 8'h0) begin
+                                ID_EX.valid <= 1'b1;
+                                ID_EX.trap <= 1'b1;
+                                mepc_data <= i_IF_ID.PC;
+                                mepc_we <= 1'b1;
+                                mcause_data <= 64'h1; //TODO
+                                mcause_we <= 1'b1;
+                            end else begin
+                                ID_EX.dat_b <= {temp_reg[63:1], 1'b0};
+                                ID_EX.jmp <= 1'b1;
+                            end
+
                             ID_EX.rd <= rd;
                             ID_EX.we <= 1'b1;
-                            ID_EX.jmp <= 1'b1;
                         end
                         LOAD: begin
-                            if(i_pmp_dcache_trap) begin
+                            temp_reg = dat_a + imm_i;
+                            if(i_pmp_dcache_trap || temp_reg[63:56] != 8'h0) begin
                                 ID_EX.valid <= 1'b0;
                                 ID_EX.trap <= 1'b1;
                                 mepc_data <= i_IF_ID.PC;
@@ -738,7 +776,8 @@ always @(posedge i_clk) begin
                             end
                         end
                         STORE: begin
-                            if(i_pmp_dcache_trap) begin
+                            temp_reg = dat_a + imm_s;
+                            if(i_pmp_dcache_trap || temp_reg[63:56] != 8'h0) begin
                                 ID_EX.valid <= 1'b0;
                                 ID_EX.trap <= 1'b1;
                                 mepc_data <= i_IF_ID.PC;
@@ -774,6 +813,18 @@ always @(posedge i_clk) begin
                         end
                         MISC_MEM: begin
                             case(funct3)
+                                FENCE: begin
+                                    if(rs1 != 5'h0 || rd != 5'h0) begin
+                                        ID_EX.valid <= 1'b0;
+                                        ID_EX.trap <= 1'b1;
+                                        mepc_data <= i_IF_ID.PC;
+                                        mepc_we <= 1'b1;
+                                        mcause_data <= 64'h2;
+                                        mcause_we <= 1'b1;
+                                    end else begin
+                                        //FENCE, single core, so not neccessary now
+                                    end
+                                end
                                 FENCE_I: begin
                                     invalidating_state <= invalidating_state;
 
@@ -853,7 +904,7 @@ always @(posedge i_clk) begin
                                     ID_EX.rd <= rd;
                                     ID_EX.we <= 1'b1;
 
-                                    if(csr_ld && csr_addr[11:10] == 2'b11) begin
+                                    if(csr_ld && csr_trap) begin
                                         ID_EX.valid <= 1'b0;
                                         ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;
@@ -861,8 +912,8 @@ always @(posedge i_clk) begin
                                         mcause_data <= 64'h2;
                                         mcause_we <= 1'b1;
                                     end
-                                    if(!(funct3 != CSRRW && rs1 == 0)) begin
-                                        if(!csr_trap) begin
+                                    else if(!(funct3 != CSRRW && rs1 == 0)) begin
+                                        if(csr_addr[11:10] != 2'b11) begin
                                             ID_EX.csr_st <= 1'b1;
                                         end else begin
                                             ID_EX.valid <= 1'b0;
@@ -875,8 +926,8 @@ always @(posedge i_clk) begin
                                     end
                                 end
                                 CSRRWI, CSRRCI, CSRRSI: begin
-                                    ID_EX.dat_a <= dat_a;
-                                    ID_EX.dat_b <= 64'(rs1);
+                                    ID_EX.dat_a <= 64'(rs1);
+                                    ID_EX.dat_b <= csr_data;
 
                                     ID_EX.csr <= csr_addr;
                                     ID_EX.csr_st <= 1'b0;
@@ -884,7 +935,7 @@ always @(posedge i_clk) begin
                                     ID_EX.rd <= rd;
                                     ID_EX.we <= 1'b1;
 
-                                    if(csr_ld && csr_addr[11:10] == 2'b11) begin
+                                    if(csr_ld && csr_trap) begin
                                         ID_EX.valid <= 1'b0;
                                         ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;
@@ -893,7 +944,7 @@ always @(posedge i_clk) begin
                                         mcause_we <= 1'b1;
                                     end
                                     else if(!(funct3 != CSRRWI && rs1 == 0)) begin
-                                        if(!csr_trap) begin
+                                        if(csr_addr[11:10] != 2'b11) begin
                                             ID_EX.csr_st <= 1'b1;
                                         end else begin
                                             ID_EX.valid <= 1'b0;
@@ -918,7 +969,7 @@ always @(posedge i_clk) begin
                         AMO: begin
                             case(funct5)
                                 LR: begin
-                                    if(i_pmp_dcache_trap) begin
+                                    if(i_pmp_dcache_trap || dat_a[63:56] != 0) begin
                                         ID_EX.valid <= 1'b0;
                                         ID_EX.trap <= 1'b1;
                                         mepc_data <= i_IF_ID.PC;

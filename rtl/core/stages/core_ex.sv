@@ -120,7 +120,7 @@ always @(posedge i_clk) begin
                                 else
                                     EX_MEM.data <= dat_a + dat_b;
                             else //ADDIW
-                                if(opcode == OP && i_ID_EX.funct7[5:5])
+                                if(opcode == OP_32 && i_ID_EX.funct7[5:5])
                                     EX_MEM.data <= 64'($signed(dat_a[31:0] - dat_b[31:0]));
                                 else
                                     EX_MEM.data <= 64'($signed(dat_a[31:0] + dat_b[31:0]));
@@ -130,7 +130,13 @@ always @(posedge i_clk) begin
                         ANDI:   EX_MEM.data <= dat_a & dat_b;
                         ORI:    EX_MEM.data <= dat_a | dat_b;
                         XORI:   EX_MEM.data <= dat_a ^ dat_b;
-                        SLLI:   EX_MEM.data <= dat_a << dat_b[5:0];
+                        SLLI: begin
+                            if(!op_32bit)
+                                EX_MEM.data <= dat_a << dat_b[5:0];
+                            else begin
+                                EX_MEM.data <= 64'($signed(32'(dat_a[31:0] << dat_b[4:0])));
+                            end
+                        end
                         SRLI_SRAI: begin
                             if(!op_32bit) //SRAI
                                 if(i_ID_EX.funct7[5:5])
@@ -141,7 +147,7 @@ always @(posedge i_clk) begin
                                 if(i_ID_EX.funct7[5:5]) //SRAIW
                                     EX_MEM.data <= 64'($signed($signed(dat_a[31:0]) >>> dat_b[4:0]));
                                 else
-                                    EX_MEM.data <= 64'($signed(dat_a[31:0] >> dat_b[5:0]));
+                                    EX_MEM.data <= 64'($signed(dat_a[31:0] >> dat_b[4:0]));
                         end
                         default: begin
                             EX_MEM.valid <= 1'b0;
@@ -169,6 +175,12 @@ always @(posedge i_clk) begin
                     EX_MEM.data <= dat_a;
 
                     case(opcode[1:0])
+                        C0: begin
+                            if(i_ID_EX.funct3 == C_ADDI4SPN)
+                                EX_MEM.data <= dat_a + dat_b;
+                            else
+                                EX_MEM.data <= dat_a;
+                        end
                         C1: begin
                             if(i_ID_EX.funct3 == C_ADDIW)
                                 EX_MEM.data <= 64'($signed(dat_a[31:0] + dat_b[31:0]));
@@ -177,7 +189,7 @@ always @(posedge i_clk) begin
                                     case(i_ID_EX.funct7[1:0])
                                         2'b00: EX_MEM.data <= dat_a >> dat_b[5:0];
                                         2'b01: EX_MEM.data <= $signed(dat_a) >>> dat_b[5:0];
-                                        2'b10: EX_MEM.data <= dat_a & dat_b;
+                                        2'b10: EX_MEM.data <= dat_a & 64'($signed(dat_b[5:0]));
                                         default: EX_MEM.data <= 64'h0;
                                     endcase
                                 end else begin
@@ -215,7 +227,7 @@ always @(posedge i_clk) begin
 
                 EX_MEM.funct3 <= i_ID_EX.funct3;
                 EX_MEM.funct5 <= i_ID_EX.funct7[6:2];
-                if(is_compressed && (EX_MEM.ld || EX_MEM.st)) begin
+                if(is_compressed && (i_ID_EX.ld || i_ID_EX.st)) begin
                     case(i_ID_EX.funct3)
                         C_SWSP,
                         C_LWSP: EX_MEM.funct3 <= LW_SW;

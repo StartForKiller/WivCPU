@@ -62,6 +62,10 @@ module top(
     output [3:0] o_seg_sel,
     input        i_clk_manual_switch,
     input        i_clk_manual
+
+    `ifdef VERILATOR
+    , output [63:0] o_test
+    `endif
 );
 
 wire clk_400khz;
@@ -307,9 +311,33 @@ ddr3_dev(
 );
 `endif
 
+`ifdef VERILATOR
+test #(.MAPPED_ADDRESS(64'h110000000))
+test_dev(
+    .i_clk(core_clk),
+    .i_reset(i_reset),
+
+    .i_wb_adr(wb_adr),
+    .i_wb_dat(wb_odat),
+    .o_wb_dat(wb_idat),
+    .i_wb_we(wb_we),
+    .i_wb_sel(wb_sel),
+    .i_wb_stb(wb_stb),
+    .o_wb_ack(wb_ack),
+    .o_wb_stall(wb_stall),
+    .i_wb_cyc(wb_cyc),
+
+    .o_test(o_test)
+);
+`endif
+
 seg7 seg_7(
     .i_clk(clk_400khz),
+    `ifndef VERILATOR
     .i_data(i_clk_manual_switch ? ddr3_debug : core_debug[23:8]),
+    `else
+    .i_data(core_debug[23:8]),
+    `endif
     .o_seg(o_seg),
     .o_sel(o_seg_sel)
 );

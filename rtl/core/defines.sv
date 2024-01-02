@@ -169,6 +169,7 @@ typedef enum bit [2:0] {
 } funct3_ld_type_t;
 
 typedef enum bit [2:0] {
+    FENCE     = 3'h0,
     FENCE_I   = 3'h1
 } funct3_misc_mem_type_t;
 

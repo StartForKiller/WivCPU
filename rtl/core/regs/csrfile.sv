@@ -160,6 +160,8 @@ always @(i_ld_csr) begin
         12'hB0F: begin end
         12'h7B0: begin if(!i_halted) o_trap <= 1'b1; end
         12'h7B1: begin if(!i_halted) o_trap <= 1'b1; end
+        12'hF11, 12'hF12, 12'hF13, 12'hF14,
+        12'hF15: begin end
         default: begin
             o_trap <= 1'b1;
         end
@@ -260,7 +262,7 @@ always @(negedge i_clk) begin
         o_data <= 64'h0;
 
         case(i_ld_csr)
-            12'h300: o_data <= {56'h0, mstatus_mpie, 3'h0, mstatus_mie, 3'h0};
+            12'h300: o_data <= {51'h0, 2'h3, 3'h0, mstatus_mpie, 3'h0, mstatus_mie, 3'h0};
             12'h301: o_data <= 64'h8000000000000104;
             12'h304: o_data <= {56'h0, mtie, 7'h0};
             12'h305: o_data <= mtvec;

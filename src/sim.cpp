@@ -18,6 +18,10 @@ public:
         TESTBENCH<Vtop>::tick();
     }
 
+    uint64_t testValue() {
+        return Core->o_test;
+    }
+
     void clockJTag() {
         Core->i_tck = 1;
         tick();
@@ -181,22 +185,31 @@ int main(int argc, char** argv) {
     tb->reset();
     tb->resetJTag();
 
-    //tb->sendJTagCommand(0x04, 0x12345678, 0x2, true);
-    //printDMIResponse(tb->readJTagCommand());
-
-    //tb->sendJTagCommand(0x04, 0, 0x1, true);
-    //printDMIResponse(tb->readJTagCommand());
-
-    //tb->sendJTagCommand(0x16, 0, 0x1, true);
-    //printDMIResponse(tb->readJTagCommand());
-
-    //printf("Current Status: 0x%08X\n", tb->readJTagStatus());
-
+    bool failed = true;
     while(!tb->done()) {
         tb->tick();
+
+        uint64_t testValue = tb->testValue();
+        if((testValue & 0x539) == 0x539) {
+            printf("Other exception found\n");
+            break;
+        } else if(testValue != 0) {
+            if(testValue != 1) {
+                if(testValue & 0x1)
+                    printf("Test %lu failed\n", (testValue >> 1));
+                else
+                    printf("Unknown test value %lu\n", testValue);
+            } else {
+                printf("Test success\n");
+                failed = false;
+            }
+            break;
+        }
     }
 
     tb->close();
 
-    return 0;
+    if(failed)
+        printf("Test failed or stalled\n");
+    return failed ? -1 : 0;
 }

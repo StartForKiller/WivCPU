@@ -43,7 +43,7 @@ module bios
 reg [63:0] mem[0:(2**(ADDR_BITS-3))-1];
 initial begin
     `ifdef VERILATOR
-        $readmemh("/mnt/c/Users/jesus/Documents/Vivado/WivCPU/samples/program.hex", mem);
+        $readmemh("./samples/program.hex", mem);
     `else
         $readmemh("C:/Users/jesus/Documents/Vivado/WivCPU/samples/program.hex", mem);
     `endif

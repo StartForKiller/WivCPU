@@ -1,4 +1,4 @@
-#/bin/sh
+#/bin/bash
 make -C samples/riscv-tests --no-print-directory
 
 tests=("rv64ui/simple.hex"
@@ -93,8 +93,17 @@ tests=("rv64ui/simple.hex"
        "rv64ua/lrsc.hex"
       )
 
+failed=0
 for str in ${tests[@]}; do
     echo "Running test: $str"
     cp samples/riscv-tests/build/$str samples/program.hex
     ./build/wivcpu
+    if [ $? -ne 0 ]; then
+        failed=1
+    fi
 done
+
+if [ "$failed" -ne 0 ]; then
+    echo "Some tests failed"
+    exit 1
+fi

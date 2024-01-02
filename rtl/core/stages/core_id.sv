@@ -884,6 +884,7 @@ always @(posedge i_clk) begin
                                             mcause_data <= 64'h3;
                                             mcause_we <= 1'b1;
                                         end
+                                        WFI: begin end //TODO
                                         default: begin
                                             ID_EX.valid <= 1'b0;
                                             ID_EX.trap <= 1'b1;

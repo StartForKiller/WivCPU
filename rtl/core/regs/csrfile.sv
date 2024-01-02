@@ -135,7 +135,7 @@ initial begin
 end
 
 always @(i_ld_csr) begin
-    o_trap <= 1'b0;
+    o_trap = 1'b0;
 
     case(i_ld_csr)
         12'h300: begin end
@@ -158,12 +158,12 @@ always @(i_ld_csr) begin
         12'hB03, 12'hB04, 12'hB05, 12'hB06, 12'hB07, 12'hB08,
         12'hB09, 12'hB0A, 12'hB0B, 12'hB0C, 12'hB0D, 12'hB0E,
         12'hB0F: begin end
-        12'h7B0: begin if(!i_halted) o_trap <= 1'b1; end
-        12'h7B1: begin if(!i_halted) o_trap <= 1'b1; end
+        12'h7B0: begin if(!i_halted) o_trap = 1'b1; end
+        12'h7B1: begin if(!i_halted) o_trap = 1'b1; end
         12'hF11, 12'hF12, 12'hF13, 12'hF14,
         12'hF15: begin end
         default: begin
-            o_trap <= 1'b1;
+            o_trap = 1'b1;
         end
     endcase
 end

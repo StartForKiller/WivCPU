@@ -42,4 +42,5 @@ jobs:
     - name: Test
       shell: bash -l {0}
       run: |
+        chmod +x ./test.sh
         ./test.sh

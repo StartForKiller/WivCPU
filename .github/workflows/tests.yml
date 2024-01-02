@@ -1,4 +1,4 @@
-name: C++ CI Workflow with apt dependencies
+name: Automated core testing
 
 on:
   push:

@@ -20,8 +20,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-      with:
-        submodules: 'true'
 
 
     - name: Dependencies
@@ -30,6 +28,10 @@ jobs:
         apt-get update
         apt-get -y upgrade
         apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev verilator libudev-dev libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libxrandr-dev libfreetype6-dev libglew-dev libjpeg8-dev libsndfile1-dev libopenal-dev gcc-riscv64-unknown-elf
+        cd samples/riscv-tests/
+        git clone https://github.com/StartForKiller/riscv-tests.git riscv-tests
+        cd riscv-tests/
+        git clone https://github.com/StartForKiller/riscv-test-env.git env
 
     - name: Configure
       run: |

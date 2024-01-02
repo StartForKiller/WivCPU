@@ -29,7 +29,8 @@ jobs:
         export DEBIAN_FRONTEND=noninteractive
         apt-get update
         apt-get -y upgrade
-        apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev verilator xorg-dev libudev-dev
+        apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev verilator libudev-dev libpthread-stubs0-dev libgl1-mesa-dev libx11-dev libxrandr-dev libfreetype6-dev libglew1.5-dev libjpeg8-dev libsndfile1-dev libopenal-dev
+
     - name: Configure
       run: |
         mkdir -p build

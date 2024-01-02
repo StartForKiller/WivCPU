@@ -105,7 +105,7 @@ all: $(ROMS)
 $(OBJ_DIR)/%.hex: riscv-tests/isa/%.S
 	@mkdir -p $(dir $@)
 	@riscv64-unknown-elf-gcc -march=rv64ia -mabi=lp64 -Iriscv-tests/env/p -Iriscv-tests/isa/macros/scalar -o $@.elf -nostartfiles -nodefaultlibs -nostdlib -Tlink.ld $<
-	@/opt/riscv/bin/riscv64-unknown-elf-objcopy -O verilog --verilog-data-width=8 $@.elf $@
+	@riscv64-unknown-elf-objcopy -O verilog --verilog-data-width=8 $@.elf $@
 
 clean_obj:
 	@rm -f $(OBJ)

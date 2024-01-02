@@ -24,7 +24,7 @@ prog.elf: $(OBJ)
 %.list: %.elf
 	@riscv64-unknown-elf-objdump -D build/$< > build/$@
 %.hex: %.elf
-	@riscv64-unknown-elf-objcopy -O verilog --verilog-data-width=8 build/$< build/$@
+	@/opt/riscv/bin/riscv64-unknown-elf-objcopy -O verilog --verilog-data-width=8 build/$< build/$@
 clean:
 	@rm -f $(OBJ_DIR)/*.bin $(OBJ_DIR)/*.list $(OBJ_DIR)/*.o $(OBJ_DIR)/*.elf $(OBJ_DIR)/*.dep *.dep
 

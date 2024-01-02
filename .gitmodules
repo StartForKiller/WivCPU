@@ -1,3 +1,6 @@
 [submodule "samples/BadgerOS"]
 	path = samples/BadgerOS
 	url = git@github.com:StartForKiller/BadgerOS.git
+[submodule "samples/riscv-tests/riscv-tests"]
+	path = samples/BadgerOS
+	url = git@github.com:StartForKiller/riscv-tests.git

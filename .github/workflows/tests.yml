@@ -1,0 +1,46 @@
+name: C++ CI Workflow with apt dependencies
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    name: '[${{ matrix.docker_image }}@${{ matrix.build_type }}@apt]'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build_type: [Release]
+        os:
+          - ubuntu-latest
+        docker_image:
+          - "ubuntu:20.04"
+          - "ubuntu:22.04"
+          - "debian:sid"      
+    container:
+      image: ${{ matrix.docker_image }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+
+    - name: Dependencies
+      run: |
+        export DEBIAN_FRONTEND=noninteractive
+        apt-get update
+        apt-get -y upgrade
+        apt-get -y install cmake pkg-config build-essential ninja-build git libssl-dev libuv1-dev libz-dev libboost-dev verilator
+    - name: Configure
+      run: |
+        mkdir -p build
+        cd build
+        cmake -GNinja -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} ..
+    - name: Build
+      shell: bash -l {0}
+      run: |
+        cd build
+        cmake --build . --config ${{ matrix.build_type }}
+    - name: Test
+      shell: bash -l {0}
+      run: |
+        ./test.sh

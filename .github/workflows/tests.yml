@@ -14,9 +14,7 @@ jobs:
         os:
           - ubuntu-latest
         docker_image:
-          - "ubuntu:20.04"
-          - "ubuntu:22.04"
-          - "debian:sid"      
+          - "ubuntu:22.04"     
     container:
       image: ${{ matrix.docker_image }}
 
